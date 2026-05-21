@@ -268,5 +268,30 @@
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
+    <script>
+    // Массив креативных названий для кнопки "Играть"
+    const playButtonNames = [
+        "🥾 На трудовую вахту",
+        "🚀 Встать в строй",
+        "▶ родина мать зовёт",
+        "📈 Выполнить план",
+        "🔨 Влиться в коллектив",
+        "📢 На партсобрание",
+        "🏭 На родной завод",
+        "📋 Приступить к обязанностям",
+        "👷 Встать к станку",
+        "🎖 В бой за урожай"
+    ];
+
+    // Выбираем случайный индекс
+    const randomIndex = Math.floor(Math.random() * playButtonNames.length);
+    const randomName = playButtonNames[randomIndex];
+
+    // Находим кнопку и меняем её текст
+    const playButton = document.getElementById('btnPlay');
+    if (playButton) {
+        playButton.textContent = randomName;
+    }
+</script>
 </body>
 </html>

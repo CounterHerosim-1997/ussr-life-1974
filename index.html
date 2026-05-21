@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>СССР, 1974 – 3D (без капсулы)</title>
+    <title>СССР, 1974 – Симулятор жизни</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: 'Times New Roman', serif; }
         #hud {
@@ -11,269 +11,93 @@
             padding: 12px 25px; border-radius: 20px; border: 2px solid #b8860b;
             pointer-events: none; font-size: 1.3rem; letter-spacing: 1px;
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
         }
         #hud span { margin: 0 12px; }
         #instruction {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.7); color: white; padding: 8px 20px;
             border-radius: 15px; font-size: 0.9rem; pointer-events: none;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
-    <div id="hud">
-        💰 <span id="money">150</span> руб.
-        😊 <span id="mood">70</span>%
-        ❤️ <span id="health">80</span>%
-        📞 <span id="blat">20</span>
+
+<!-- ========== ГЛАВНОЕ МЕНЮ ========== -->
+<div id="mainMenu" style="
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #6b1a1a 0%, #3e0a0a 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; font-family: 'Times New Roman', serif;
+">
+    <div style="font-size: 5rem; margin-bottom: 10px; filter: drop-shadow(0 0 20px gold);">☭</div>
+    <h1 style="color: #ffd700; font-size: 3.5rem; letter-spacing: 6px; text-shadow: 3px 3px 0 #8b0000; margin: 0 0 10px 0;">
+        СССР, 1974
+    </h1>
+    <p style="color: #ffcc80; font-size: 1.2rem; margin-bottom: 40px; font-style: italic;">
+        Симулятор жизни советского человека
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 18px; width: 300px;">
+        <!-- Кнопка ИГРАТЬ (текст будет заменён рандомно) -->
+        <button id="btnPlay" style="
+            padding: 16px 32px; font-size: 1.5rem; font-family: inherit;
+            background: #b22222; color: #ffd700; border: 2px solid #daa520;
+            border-radius: 10px; cursor: pointer; letter-spacing: 2px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s;
+        " onmouseover="this.style.background='#d42a2a'; this.style.transform='scale(1.03)'" 
+           onmouseout="this.style.background='#b22222'; this.style.transform='scale(1)'">
+            🥾 На трудовую вахту
+        </button>
+
+        <!-- Кнопка НАСТРОЙКИ (заглушка) -->
+        <button id="btnSettings" style="
+            padding: 14px 28px; font-size: 1.2rem; font-family: inherit;
+            background: #5c3a1e; color: #ffd700; border: 2px solid #8b5a2b;
+            border-radius: 8px; cursor: pointer; letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4); transition: 0.2s;
+        " onmouseover="this.style.background='#7a4e2a'; this.style.transform='scale(1.02)'" 
+           onmouseout="this.style.background='#5c3a1e'; this.style.transform='scale(1)'">
+            🛠 Параметры
+        </button>
+
+        <!-- Кнопка ОТДЫХАТЬ (заглушка) -->
+        <button id="btnRest" style="
+            padding: 14px 28px; font-size: 1.2rem; font-family: inherit;
+            background: #2e4a2e; color: #ffd700; border: 2px solid #6b8b3a;
+            border-radius: 8px; cursor: pointer; letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4); transition: 0.2s;
+        " onmouseover="this.style.background='#3d613d'; this.style.transform='scale(1.02)'" 
+           onmouseout="this.style.background='#2e4a2e'; this.style.transform='scale(1)'">
+            😴 На печь
+        </button>
+
+        <!-- Кнопка ВЫЙТИ (заглушка) -->
+        <button id="btnExit" style="
+            padding: 12px 24px; font-size: 1.1rem; font-family: inherit;
+            background: #3e2723; color: #ccc; border: 1px solid #5d4037;
+            border-radius: 6px; cursor: pointer; letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: 0.2s;
+        " onmouseover="this.style.background='#4e342e'; this.style.transform='scale(1.02)'" 
+           onmouseout="this.style.background='#3e2723'; this.style.transform='scale(1)'">
+            🚪 Выйти
+        </button>
     </div>
-    <div id="instruction">🖱 Левая кнопка – вращать | Колёсико – приблизить | Правая кнопка – панорама</div>
 
-    <!-- Three.js 0.132.2 (точно работает) -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/renderers/CSS2DRenderer.js"></script>
+    <p style="position: absolute; bottom: 15px; color: #8b5a5a; font-size: 0.8rem;">
+        Версия 0.1 • Сделано с душой и капсулой
+    </p>
+</div>
 
-    <script>
-        // ---------- RPG ДАННЫЕ ----------
-        const playerData = { money: 150, mood: 70, health: 80, blat: 20 };
-        function updateHUD() {
-            document.getElementById('money').textContent = playerData.money;
-            document.getElementById('mood').textContent = playerData.mood;
-            document.getElementById('health').textContent = playerData.health;
-            document.getElementById('blat').textContent = playerData.blat;
-        }
-
-        // ---------- СЦЕНА ----------
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x4a2c1a);
-
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(5, 5, 8);
-        camera.lookAt(0, 1, 0);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-
-        const labelRenderer = new THREE.CSS2DRenderer();
-        labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none';
-        document.body.appendChild(labelRenderer.domElement);
-
-        // OrbitControls
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1, 0);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.update();
-
-        // Освещение
-        const ambientLight = new THREE.AmbientLight(0xffeebb, 0.8);
-        scene.add(ambientLight);
-        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-        sunLight.position.set(8, 12, 4);
-        sunLight.castShadow = true;
-        sunLight.receiveShadow = true;
-        sunLight.shadow.mapSize.width = 1024;
-        sunLight.shadow.mapSize.height = 1024;
-        sunLight.shadow.camera.near = 0.5;
-        sunLight.shadow.camera.far = 50;
-        sunLight.shadow.camera.left = -15;
-        sunLight.shadow.camera.right = 15;
-        sunLight.shadow.camera.top = 15;
-        sunLight.shadow.camera.bottom = -10;
-        scene.add(sunLight);
-
-        // Пол и сетка
-        const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(8, 8),
-            new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 })
-        );
-        floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        const gridHelper = new THREE.GridHelper(8, 20, 0x000000, 0x444444);
-        gridHelper.position.y = 0.01;
-        scene.add(gridHelper);
-        scene.add(new THREE.AxesHelper(5));
-
-        // Стены
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xb0a090, roughness: 0.8 });
-        function addWall(w, h, d, x, y, z, ry = 0) {
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
-            wall.position.set(x, y, z);
-            wall.rotation.y = ry;
-            wall.receiveShadow = true;
-            wall.castShadow = true;
-            scene.add(wall);
-        }
-        addWall(8, 3, 0.3, 0, 1.5, -4);
-        addWall(8, 3, 0.3, 0, 1.5, 4, Math.PI);
-        addWall(0.3, 3, 8, -4, 1.5, 0, Math.PI/2);
-        addWall(0.3, 3, 8, 4, 1.5, 0, Math.PI/2);
-
-        // Потолок
-        const ceiling = new THREE.Mesh(
-            new THREE.PlaneGeometry(8, 8),
-            new THREE.MeshStandardMaterial({ color: 0xddccaa })
-        );
-        ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.y = 3;
-        ceiling.receiveShadow = true;
-        scene.add(ceiling);
-
-        // Окно
-        scene.add(new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 0.1), new THREE.MeshStandardMaterial({ color: 0x5c4033 }))
-            .translateX(0).translateY(2).translateZ(-3.85));
-        scene.add(new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.0), new THREE.MeshStandardMaterial({ color: 0xaaccff, emissive: new THREE.Color(0x112233) }))
-            .translateX(0).translateY(2).translateZ(-3.9));
-
-        // Стол
-        scene.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), new THREE.MeshStandardMaterial({ color: 0x6b3a2a }))
-            .translateX(2).translateY(0.6).translateZ(1.5));
-        scene.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6, 8), new THREE.MeshStandardMaterial({ color: 0x4a2a1a }))
-            .translateX(2).translateY(0.3).translateZ(1.5));
-        // Стул
-        scene.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.5), new THREE.MeshStandardMaterial({ color: 0x8b0000 }))
-            .translateX(2.5).translateY(0.45).translateZ(1.2));
-        scene.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.1), new THREE.MeshStandardMaterial({ color: 0x8b0000 }))
-            .translateX(2.5).translateY(0.8).translateZ(1.45));
-        // Ковёр
-        const carpet = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.8), new THREE.MeshStandardMaterial({ color: 0x9b2020, roughness: 1 }));
-        carpet.rotation.x = -Math.PI/2;
-        carpet.position.set(-1.5, 0.01, -0.5);
-        carpet.receiveShadow = true;
-        scene.add(carpet);
-
-        // ---------- ПЕРСОНАЖ (цилиндры + сферы, без капсулы) ----------
-        const playerGroup = new THREE.Group();
-
-        const bodyGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 8);
-        const body = new THREE.Mesh(bodyGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
-        body.position.y = 0.4;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        playerGroup.add(body);
-
-        const headGeom = new THREE.SphereGeometry(0.25, 16, 16);
-        const head = new THREE.Mesh(headGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
-        head.position.y = 0.9;
-        head.castShadow = true;
-        head.receiveShadow = true;
-        playerGroup.add(head);
-
-        const legGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
-        const leftLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
-        leftLeg.position.set(-0.15, 0.05, 0);
-        leftLeg.castShadow = true;
-        leftLeg.receiveShadow = true;
-        playerGroup.add(leftLeg);
-
-        const rightLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
-        rightLeg.position.set(0.15, 0.05, 0);
-        rightLeg.castShadow = true;
-        rightLeg.receiveShadow = true;
-        playerGroup.add(rightLeg);
-
-        const eyeGeom = new THREE.SphereGeometry(0.06);
-        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
-        const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
-        leftEye.position.set(-0.1, 0.95, 0.22);
-        playerGroup.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
-        rightEye.position.set(0.1, 0.95, 0.22);
-        playerGroup.add(rightEye);
-
-        playerGroup.position.set(0, 0, 0);
-        scene.add(playerGroup);
-
-        // Чтобы остальной код работал, привяжем playerMesh к группе
-        const playerMesh = playerGroup;
-
-        // ---------- УПРАВЛЕНИЕ WASD ----------
-        const keyState = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
-        window.addEventListener('keydown', (e) => {
-            if (e.code in keyState) { keyState[e.code] = true; e.preventDefault(); }
-        });
-        window.addEventListener('keyup', (e) => {
-            if (e.code in keyState) { keyState[e.code] = false; e.preventDefault(); }
-        });
-
-        const moveSpeed = 3.5;
-        const clock = new THREE.Clock();
-
-        let cameraYaw = 0;
-        let cameraPitch = 0.4;
-        const cameraDistance = 4.5;
-
-        // ---------- УПРАВЛЕНИЕ МЫШЬЮ ДЛЯ КАМЕРЫ ----------
-        let isMouseDown = false;
-        window.addEventListener('mousedown', (e) => { if (e.button === 0) isMouseDown = true; });
-        window.addEventListener('mouseup', (e) => { if (e.button === 0) isMouseDown = false; });
-        window.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) return;
-            cameraYaw -= e.movementX * 0.005;
-            cameraPitch -= e.movementY * 0.005;
-            cameraPitch = Math.max(0.1, Math.min(1.2, cameraPitch));
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-
-            const moveDir = new THREE.Vector3();
-            const forward = new THREE.Vector3(Math.sin(cameraYaw), 0, Math.cos(cameraYaw));
-            const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
-
-            if (keyState.KeyW) moveDir.add(forward);
-            if (keyState.KeyS) moveDir.sub(forward);
-            if (keyState.KeyA) moveDir.sub(right);
-            if (keyState.KeyD) moveDir.add(right);
-
-            if (moveDir.length() > 0) {
-                moveDir.normalize();
-                playerMesh.position.x += moveDir.x * moveSpeed * delta;
-                playerMesh.position.z += moveDir.z * moveSpeed * delta;
-                playerMesh.position.x = Math.max(-3.5, Math.min(3.5, playerMesh.position.x));
-                playerMesh.position.z = Math.max(-3.5, Math.min(3.5, playerMesh.position.z));
-                playerMesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
-            } else {
-                playerMesh.rotation.y = cameraYaw;
-            }
-
-            // Камера вокруг персонажа
-            const camX = playerMesh.position.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * cameraDistance;
-            const camY = playerMesh.position.y + Math.sin(cameraPitch) * cameraDistance;
-            const camZ = playerMesh.position.z + Math.cos(cameraYaw) * Math.cos(cameraPitch) * cameraDistance;
-            camera.position.set(camX, camY, camZ);
-            camera.lookAt(playerMesh.position.x, playerMesh.position.y + 0.8, playerMesh.position.z);
-
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
-        }
-
-        updateHUD();
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
-    <script>
-    // Массив креативных названий для кнопки "Играть"
+<!-- ========== ЛОГИКА МЕНЮ (отдельный скрипт) ========== -->
+<script>
+    // Массив названий для кнопки ИГРАТЬ (добавь свои!)
     const playButtonNames = [
         "🥾 На трудовую вахту",
         "🚀 Встать в строй",
-        "▶ родина мать зовёт",
+        "▶ Продолжить",
+        "🇷🇺 Родина мать зовёт",   // твой вариант
         "📈 Выполнить план",
         "🔨 Влиться в коллектив",
         "📢 На партсобрание",
@@ -283,15 +107,282 @@
         "🎖 В бой за урожай"
     ];
 
-    // Выбираем случайный индекс
+    // Рандомный выбор
     const randomIndex = Math.floor(Math.random() * playButtonNames.length);
-    const randomName = playButtonNames[randomIndex];
+    document.getElementById('btnPlay').textContent = playButtonNames[randomIndex];
 
-    // Находим кнопку и меняем её текст
-    const playButton = document.getElementById('btnPlay');
-    if (playButton) {
-        playButton.textContent = randomName;
-    }
+    // Обработчики кнопок
+    document.getElementById('btnPlay').addEventListener('click', function() {
+        document.getElementById('mainMenu').style.display = 'none';
+        // Дополнительно можно запустить таймер или анимацию, но пока просто скрываем
+    });
+
+    document.getElementById('btnSettings').addEventListener('click', function() {
+        alert('⚙️ Параметры пока в разработке.');
+    });
+
+    document.getElementById('btnRest').addEventListener('click', function() {
+        alert('😴 На печь ещё нужно заслужить, товарищ!');
+    });
+
+    document.getElementById('btnExit').addEventListener('click', function() {
+        document.body.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#1a0000; color:#ffd700; font-family:'Times New Roman',serif; font-size:2rem;">
+                <div style="text-align:center;">
+                    <p>🚪 Вы покинули расположение части.</p>
+                    <p style="font-size:1rem; color:#8b5a5a;">Закройте вкладку вручную, товарищ.</p>
+                </div>
+            </div>
+        `;
+    });
 </script>
+
+<!-- ========== ИГРОВОЙ HUD (скрыт за меню, но существует) ========== -->
+<div id="hud">
+    💰 <span id="money">150</span> руб.
+    😊 <span id="mood">70</span>%
+    ❤️ <span id="health">80</span>%
+    📞 <span id="blat">20</span>
+</div>
+<div id="instruction">WASD – ходить | Мышь (зажать левую кнопку) – осмотреться</div>
+
+<!-- ========== Three.js и игровой код ========== -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/renderers/CSS2DRenderer.js"></script>
+
+<script>
+    // ---------- RPG ДАННЫЕ ----------
+    const playerData = { money: 150, mood: 70, health: 80, blat: 20 };
+    function updateHUD() {
+        document.getElementById('money').textContent = playerData.money;
+        document.getElementById('mood').textContent = playerData.mood;
+        document.getElementById('health').textContent = playerData.health;
+        document.getElementById('blat').textContent = playerData.blat;
+    }
+
+    // ---------- СЦЕНА ----------
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x4a2c1a);
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(5, 5, 8);
+    camera.lookAt(0, 1, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const labelRenderer = new THREE.CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild(labelRenderer.domElement);
+
+    // OrbitControls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.update();
+
+    // Освещение
+    const ambientLight = new THREE.AmbientLight(0xffeebb, 0.8);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+    sunLight.position.set(8, 12, 4);
+    sunLight.castShadow = true;
+    sunLight.receiveShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 50;
+    sunLight.shadow.camera.left = -15;
+    sunLight.shadow.camera.right = 15;
+    sunLight.shadow.camera.top = 15;
+    sunLight.shadow.camera.bottom = -10;
+    scene.add(sunLight);
+
+    // Пол и сетка
+    const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(8, 8),
+        new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(8, 20, 0x000000, 0x444444);
+    gridHelper.position.y = 0.01;
+    scene.add(gridHelper);
+    scene.add(new THREE.AxesHelper(5));
+
+    // Стены
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xb0a090, roughness: 0.8 });
+    function addWall(w, h, d, x, y, z, ry = 0) {
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+        wall.position.set(x, y, z);
+        wall.rotation.y = ry;
+        wall.receiveShadow = true;
+        wall.castShadow = true;
+        scene.add(wall);
+    }
+    addWall(8, 3, 0.3, 0, 1.5, -4);
+    addWall(8, 3, 0.3, 0, 1.5, 4, Math.PI);
+    addWall(0.3, 3, 8, -4, 1.5, 0, Math.PI/2);
+    addWall(0.3, 3, 8, 4, 1.5, 0, Math.PI/2);
+
+    // Потолок
+    const ceiling = new THREE.Mesh(
+        new THREE.PlaneGeometry(8, 8),
+        new THREE.MeshStandardMaterial({ color: 0xddccaa })
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = 3;
+    ceiling.receiveShadow = true;
+    scene.add(ceiling);
+
+    // Окно
+    scene.add(new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 0.1), new THREE.MeshStandardMaterial({ color: 0x5c4033 }))
+        .translateX(0).translateY(2).translateZ(-3.85));
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.0), new THREE.MeshStandardMaterial({ color: 0xaaccff, emissive: new THREE.Color(0x112233) }))
+        .translateX(0).translateY(2).translateZ(-3.9));
+
+    // Стол
+    scene.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), new THREE.MeshStandardMaterial({ color: 0x6b3a2a }))
+        .translateX(2).translateY(0.6).translateZ(1.5));
+    scene.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6, 8), new THREE.MeshStandardMaterial({ color: 0x4a2a1a }))
+        .translateX(2).translateY(0.3).translateZ(1.5));
+    // Стул
+    scene.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.5), new THREE.MeshStandardMaterial({ color: 0x8b0000 }))
+        .translateX(2.5).translateY(0.45).translateZ(1.2));
+    scene.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.1), new THREE.MeshStandardMaterial({ color: 0x8b0000 }))
+        .translateX(2.5).translateY(0.8).translateZ(1.45));
+    // Ковёр
+    const carpet = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.8), new THREE.MeshStandardMaterial({ color: 0x9b2020, roughness: 1 }));
+    carpet.rotation.x = -Math.PI/2;
+    carpet.position.set(-1.5, 0.01, -0.5);
+    carpet.receiveShadow = true;
+    scene.add(carpet);
+
+    // ---------- ПЕРСОНАЖ (Капсулыч) ----------
+    const playerGroup = new THREE.Group();
+
+    const bodyGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 8);
+    const body = new THREE.Mesh(bodyGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
+    body.position.y = 0.4;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    playerGroup.add(body);
+
+    const headGeom = new THREE.SphereGeometry(0.25, 16, 16);
+    const head = new THREE.Mesh(headGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
+    head.position.y = 0.9;
+    head.castShadow = true;
+    head.receiveShadow = true;
+    playerGroup.add(head);
+
+    const legGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
+    const leftLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
+    leftLeg.position.set(-0.15, 0.05, 0);
+    leftLeg.castShadow = true;
+    leftLeg.receiveShadow = true;
+    playerGroup.add(leftLeg);
+
+    const rightLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
+    rightLeg.position.set(0.15, 0.05, 0);
+    rightLeg.castShadow = true;
+    rightLeg.receiveShadow = true;
+    playerGroup.add(rightLeg);
+
+    const eyeGeom = new THREE.SphereGeometry(0.06);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+    const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
+    leftEye.position.set(-0.1, 0.95, 0.22);
+    playerGroup.add(leftEye);
+    const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
+    rightEye.position.set(0.1, 0.95, 0.22);
+    playerGroup.add(rightEye);
+
+    playerGroup.position.set(0, 0, 0);
+    scene.add(playerGroup);
+
+    const playerMesh = playerGroup;
+
+    // ---------- УПРАВЛЕНИЕ WASD ----------
+    const keyState = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
+    window.addEventListener('keydown', (e) => {
+        if (e.code in keyState) { keyState[e.code] = true; e.preventDefault(); }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.code in keyState) { keyState[e.code] = false; e.preventDefault(); }
+    });
+
+    const moveSpeed = 3.5;
+    const clock = new THREE.Clock();
+
+    let cameraYaw = 0;
+    let cameraPitch = 0.4;
+    const cameraDistance = 4.5;
+
+    // Управление мышью
+    let isMouseDown = false;
+    window.addEventListener('mousedown', (e) => { if (e.button === 0) isMouseDown = true; });
+    window.addEventListener('mouseup', (e) => { if (e.button === 0) isMouseDown = false; });
+    window.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        cameraYaw -= e.movementX * 0.005;
+        cameraPitch -= e.movementY * 0.005;
+        cameraPitch = Math.max(0.1, Math.min(1.2, cameraPitch));
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+
+        const moveDir = new THREE.Vector3();
+        const forward = new THREE.Vector3(Math.sin(cameraYaw), 0, Math.cos(cameraYaw));
+        const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
+
+        if (keyState.KeyW) moveDir.add(forward);
+        if (keyState.KeyS) moveDir.sub(forward);
+        if (keyState.KeyA) moveDir.sub(right);
+        if (keyState.KeyD) moveDir.add(right);
+
+        if (moveDir.length() > 0) {
+            moveDir.normalize();
+            playerMesh.position.x += moveDir.x * moveSpeed * delta;
+            playerMesh.position.z += moveDir.z * moveSpeed * delta;
+            playerMesh.position.x = Math.max(-3.5, Math.min(3.5, playerMesh.position.x));
+            playerMesh.position.z = Math.max(-3.5, Math.min(3.5, playerMesh.position.z));
+            playerMesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+        } else {
+            playerMesh.rotation.y = cameraYaw;
+        }
+
+        const camX = playerMesh.position.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * cameraDistance;
+        const camY = playerMesh.position.y + Math.sin(cameraPitch) * cameraDistance;
+        const camZ = playerMesh.position.z + Math.cos(cameraYaw) * Math.cos(cameraPitch) * cameraDistance;
+        camera.position.set(camX, camY, camZ);
+        camera.lookAt(playerMesh.position.x, playerMesh.position.y + 0.8, playerMesh.position.z);
+
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
+    }
+
+    updateHUD();
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+
 </body>
 </html>

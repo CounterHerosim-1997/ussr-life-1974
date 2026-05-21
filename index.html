@@ -161,25 +161,56 @@
         carpet.receiveShadow = true;
         scene.add(carpet);
 
-        // ---------- ПЕРСОНАЖ (капсула) ----------
-        const playerGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 4, 8);
-        const playerMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a76a });
-        const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-        playerMesh.castShadow = true;
-        playerMesh.receiveShadow = true;
-        playerMesh.position.set(0, 1.0, 0);
-        scene.add(playerMesh);
 
-        // Глаза
-        const eyeGeom = new THREE.SphereGeometry(0.1);
-        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
-        const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
-        leftEye.position.set(-0.15, 0.4, 0.25);
-        const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
-        rightEye.position.set(0.15, 0.4, 0.25);
-        playerMesh.add(leftEye);
-        playerMesh.add(rightEye);
+// ---------- ПЕРСОНАЖ (составной: цилиндр + сферы) ----------
+const playerGroup = new THREE.Group(); // группа, чтобы держать всё вместе
 
+// Тело (цилиндр)
+const bodyGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 8);
+const body = new THREE.Mesh(bodyGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
+body.position.y = 0.4; // чтобы стоял над землёй
+body.castShadow = true;
+body.receiveShadow = true;
+playerGroup.add(body);
+
+// Голова (сфера)
+const headGeom = new THREE.SphereGeometry(0.25, 16, 16);
+const head = new THREE.Mesh(headGeom, new THREE.MeshStandardMaterial({ color: 0xd4a76a }));
+head.position.y = 0.9;
+head.castShadow = true;
+head.receiveShadow = true;
+playerGroup.add(head);
+
+// Ноги (два цилиндрика по бокам)
+const legGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
+const leftLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
+leftLeg.position.set(-0.15, 0.05, 0);
+leftLeg.castShadow = true;
+leftLeg.receiveShadow = true;
+playerGroup.add(leftLeg);
+
+const rightLeg = new THREE.Mesh(legGeom, new THREE.MeshStandardMaterial({ color: 0x6b3a2a }));
+rightLeg.position.set(0.15, 0.05, 0);
+rightLeg.castShadow = true;
+rightLeg.receiveShadow = true;
+playerGroup.add(rightLeg);
+
+// Глаза
+const eyeGeom = new THREE.SphereGeometry(0.06);
+const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
+leftEye.position.set(-0.1, 0.95, 0.22);
+playerGroup.add(leftEye);
+const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
+rightEye.position.set(0.1, 0.95, 0.22);
+playerGroup.add(rightEye);
+
+// Установим группу в сцену
+playerGroup.position.set(0, 0, 0); // стоять в центре
+scene.add(playerGroup);
+
+// Теперь все ссылки на playerMesh замени на playerGroup
+const playerMesh = playerGroup; // чтобы остальной код работал как раньше
         // ---------- АНИМАЦИЯ ----------
         function animate() {
             requestAnimationFrame(animate);
